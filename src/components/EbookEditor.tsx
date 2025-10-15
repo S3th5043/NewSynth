@@ -45,11 +45,29 @@ function estimateReadingTime(words: number): string {
   return `${minutes} min read`;
 }
 
-export default function EbookEditor() {
+export type EbookOutlinePrefill = {
+  title: string;
+  chapters: Array<{ title: string; summary?: string }>;
+};
+
+export default function EbookEditor({ prefillOutline, onOutlineApplied }: { prefillOutline?: EbookOutlinePrefill | null; onOutlineApplied?: () => void } = {}) {
   const [data, setData] = useState<EbookDetails>(() => readFromStorage(KEY, defaultStructure()));
   const [chapterIndex, setChapterIndex] = useState(0);
 
   useEffect(() => { writeToStorage(KEY, data); }, [data]);
+
+  useEffect(() => {
+    if (!prefillOutline) return;
+    setData((prev) => {
+      const chapters = prefillOutline.chapters.map((c, i) => ({ title: c.title || `Chapter ${i+1}`, content: '' }));
+      return {
+        ...prev,
+        title: prefillOutline.title || prev.title,
+        chapters,
+      };
+    });
+    onOutlineApplied?.();
+  }, [prefillOutline, onOutlineApplied]);
 
   const readingTime = useMemo(() => estimateReadingTime(data.wordCount), [data.wordCount]);
 
