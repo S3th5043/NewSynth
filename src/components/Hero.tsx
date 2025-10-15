@@ -86,7 +86,7 @@ export default function Hero() {
               className="mt-8 flex flex-wrap items-center gap-4"
             >
               <a
-                href="#pricing"
+                href="/login"
                 className="rounded-lg bg-primary text-white px-6 py-3 shadow-soft transition-transform duration-300 ease-out hover:scale-[1.02] hover:shadow-glass"
               >
                 Start Creating Free

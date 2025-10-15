@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { search } from '@/utils/vector-store';
 import { streamChat } from '@/utils/ai';
-import { verifyAdminApiKey } from '@/utils/auth';
+import { verifyProjectApiKey } from '@/utils/auth-project';
 
 export const runtime = 'nodejs';
 
@@ -13,14 +13,13 @@ const BodySchema = z.object({
 });
 
 export async function POST(req: NextRequest) {
-  if (!verifyAdminApiKey(req.headers.get('x-api-key'))) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { 'content-type': 'application/json' } });
-  }
+  const auth = await verifyProjectApiKey(req.headers.get('x-api-key'));
+  if (!auth.ok) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { 'content-type': 'application/json' } });
   let body: z.infer<typeof BodySchema>;
   try { body = BodySchema.parse(await req.json()); }
   catch { return new Response(JSON.stringify({ error: 'Invalid body' }), { status: 400, headers: { 'content-type': 'application/json' } }); }
 
-  const matches = await search(body.projectId, body.query, body.topK);
+  const matches = await search(body.projectId || auth.projectId!, body.query, body.topK);
   const context = matches.map((m, i) => `# Doc ${i+1} (score=${m.score.toFixed(3)})\n${m.text}`).join('\n\n');
 
   const messages = [

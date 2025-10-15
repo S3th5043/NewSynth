@@ -21,11 +21,13 @@
   },
   "dependencies": {
     "@next/font": "^14.2.15",
+    "@prisma/client": "^6.17.1",
     "framer-motion": "^11.11.17",
     "jspdf": "^3.0.3",
     "lucide-react": "^0.460.0",
     "next": "^14.2.15",
     "openai": "^6.3.0",
+    "prisma": "^6.17.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.65.0",

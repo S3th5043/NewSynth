@@ -108,13 +108,12 @@ export default function Header() {
                 {item.label}
               </a>
             ))}
-            <a
-              href="#pricing"
-              onClick={(e) => onNavClick(e, '#pricing')}
+            <Link
+              href="/login"
               className="ml-2 inline-flex items-center rounded-lg bg-primary px-4 py-2 text-white shadow-soft transition-colors duration-300 ease-out hover:opacity-90"
             >
               Get Started Free
-            </a>
+            </Link>
           </nav>
           <button
             aria-label="Toggle menu"
@@ -166,14 +165,11 @@ export default function Header() {
                     {item.label}
                   </motion.a>
                 ))}
-                <motion.a
-                  variants={itemVariants}
-                  href="#pricing"
-                  onClick={(e) => onNavClick(e, '#pricing')}
-                  className="mt-2 inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-white shadow-soft"
-                >
-                  Get Started Free
-                </motion.a>
+                <motion.div variants={itemVariants}>
+                  <Link href="/login" className="mt-2 inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-white shadow-soft">
+                    Get Started Free
+                  </Link>
+                </motion.div>
               </motion.nav>
             </motion.aside>
           </>

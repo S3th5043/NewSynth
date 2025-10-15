@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { addDocuments } from '@/utils/vector-store';
 import { log } from '@/utils/observability';
-import { verifyAdminApiKey } from '@/utils/auth';
+import { verifyProjectApiKey } from '@/utils/auth-project';
 
 export const runtime = 'nodejs';
 
@@ -12,14 +12,13 @@ const BodySchema = z.object({
 });
 
 export async function POST(req: NextRequest) {
-  if (!verifyAdminApiKey(req.headers.get('x-api-key'))) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const auth = await verifyProjectApiKey(req.headers.get('x-api-key'));
+  if (!auth.ok) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   let body: z.infer<typeof BodySchema>;
   try { body = BodySchema.parse(await req.json()); }
   catch { return NextResponse.json({ error: 'Invalid body' }, { status: 400 }); }
 
-  const created = await addDocuments(body.projectId, body.docs);
+  const created = await addDocuments(body.projectId || auth.projectId!, body.docs);
   log('info', 'rag_ingest', { projectId: body.projectId, created });
   return NextResponse.json({ ok: true, created });
 }
