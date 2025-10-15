@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { search } from '@/utils/vector-store';
 import { streamChat } from '@/utils/ai';
+import { verifyAdminApiKey } from '@/utils/auth';
 
 export const runtime = 'nodejs';
 
@@ -12,6 +13,9 @@ const BodySchema = z.object({
 });
 
 export async function POST(req: NextRequest) {
+  if (!verifyAdminApiKey(req.headers.get('x-api-key'))) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { 'content-type': 'application/json' } });
+  }
   let body: z.infer<typeof BodySchema>;
   try { body = BodySchema.parse(await req.json()); }
   catch { return new Response(JSON.stringify({ error: 'Invalid body' }), { status: 400, headers: { 'content-type': 'application/json' } }); }

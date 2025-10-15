@@ -8,15 +8,16 @@ export default function RagLab() {
   const [results, setResults] = useState<Array<{text:string; score:number}>>([]);
   const [answer, setAnswer] = useState('');
   const [loading, setLoading] = useState(false);
+  const [apiKey, setApiKey] = useState('');
 
   async function ingest() {
     const docs = text.split(/\n\n+/).map((t) => ({ text: t.trim() })).filter((d) => d.text.length > 0);
     if (docs.length === 0) return;
-    await fetch('/api/rag/ingest', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ projectId, docs }) });
+    await fetch('/api/rag/ingest', { method:'POST', headers:{'Content-Type':'application/json', 'x-api-key': apiKey }, body: JSON.stringify({ projectId, docs }) });
   }
 
   async function doSearch() {
-    const res = await fetch('/api/rag/search', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ projectId, query, topK:5 }) });
+    const res = await fetch('/api/rag/search', { method:'POST', headers:{'Content-Type':'application/json', 'x-api-key': apiKey }, body: JSON.stringify({ projectId, query, topK:5 }) });
     const data = await res.json();
     setResults(data.results ?? []);
   }
@@ -24,7 +25,7 @@ export default function RagLab() {
   async function ask() {
     setLoading(true); setAnswer('');
     try {
-      const res = await fetch('/api/rag/answer', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ projectId, query, topK:4 }) });
+      const res = await fetch('/api/rag/answer', { method:'POST', headers:{'Content-Type':'application/json', 'x-api-key': apiKey }, body: JSON.stringify({ projectId, query, topK:4 }) });
       const reader = res.body?.getReader();
       const decoder = new TextDecoder();
       if (!reader) return;
@@ -47,6 +48,10 @@ export default function RagLab() {
           <div className="sm:col-span-2">
             <label className="text-sm">Project ID</label>
             <input value={projectId} onChange={(e)=>setProjectId(e.target.value)} className="mt-1 w-full rounded-md border px-3 py-2" />
+          </div>
+          <div>
+            <label className="text-sm">API Key</label>
+            <input value={apiKey} onChange={(e)=>setApiKey(e.target.value)} className="mt-1 w-full rounded-md border px-3 py-2" placeholder="ADMIN_API_KEY" />
           </div>
         </div>
         <label className="text-sm">Paste documents (blank line separates docs)</label>

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { search } from '@/utils/vector-store';
+import { verifyAdminApiKey } from '@/utils/auth';
 
 export const runtime = 'nodejs';
 
@@ -11,6 +12,9 @@ const BodySchema = z.object({
 });
 
 export async function POST(req: NextRequest) {
+  if (!verifyAdminApiKey(req.headers.get('x-api-key'))) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
   let body: z.infer<typeof BodySchema>;
   try { body = BodySchema.parse(await req.json()); }
   catch { return NextResponse.json({ error: 'Invalid body' }, { status: 400 }); }

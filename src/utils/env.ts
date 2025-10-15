@@ -3,6 +3,7 @@ import { z } from 'zod';
 const EnvSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   OPENAI_API_KEY: z.string().min(1).optional(),
+  ADMIN_API_KEY: z.string().min(12).optional(),
 });
 
 export type Env = z.infer<typeof EnvSchema>;
@@ -15,6 +16,7 @@ function readEnv(key: string): string | undefined {
 export const env: Env = EnvSchema.parse({
   NODE_ENV: readEnv('NODE_ENV'),
   OPENAI_API_KEY: readEnv('OPENAI_API_KEY'),
+  ADMIN_API_KEY: readEnv('ADMIN_API_KEY'),
 });
 
 export function isProduction(): boolean {
