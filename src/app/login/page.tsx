@@ -17,7 +17,7 @@ export default function LoginPage() {
   const onSendCode = async ({ email }: FormValues) => {
     setError(null); setLoading(true);
     try {
-      await new Promise((r) => setTimeout(r, 700));
+      await new Promise((r) => setTimeout(r, 300));
       setStep(2);
     } catch (e) {
       setError('Something went wrong. Please try again.');
@@ -71,8 +71,9 @@ export default function LoginPage() {
               </form>
             )}
 
-            <div className="mt-6 flex items-center justify-between text-sm">
+            <div className="mt-6 grid gap-2 text-sm">
               <a href="#" className="text-gray-600 hover:text-primary">Need help? Contact support</a>
+              <a href="/api/auth/signin" className="inline-flex items-center justify-center rounded-md border px-3 py-2 hover:bg-gray-50">Sign in with Provider</a>
               <span className="text-gray-400">Synthesise AI</span>
             </div>
           </div>
