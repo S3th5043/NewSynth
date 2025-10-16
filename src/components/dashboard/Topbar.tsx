@@ -1,7 +1,9 @@
 "use client";
-import { Bell, Search, Settings, ChevronDown } from 'lucide-react';
+import { Bell, Search, Settings, ChevronDown, LogOut } from 'lucide-react';
+import { useSession, signIn, signOut } from 'next-auth/react';
 
 export default function Topbar() {
+  const { data: session, status } = useSession();
   return (
     <header className="sticky top-0 z-40 border-b bg-white/70 backdrop-blur">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
@@ -17,11 +19,22 @@ export default function Topbar() {
           <button aria-label="Settings" className="rounded-md p-2 hover:bg-gray-100">
             <Settings className="h-5 w-5" />
           </button>
-          <button className="ml-2 inline-flex items-center gap-2 rounded-md border px-2.5 py-1.5 hover:bg-gray-50">
-            <span className="h-6 w-6 rounded-full bg-gray-300" />
-            <span className="text-sm">You</span>
-            <ChevronDown className="h-4 w-4" />
-          </button>
+          {status === 'authenticated' ? (
+            <div className="ml-2 inline-flex items-center gap-2">
+              <button className="inline-flex items-center gap-2 rounded-md border px-2.5 py-1.5 hover:bg-gray-50">
+                <span className="h-6 w-6 rounded-full bg-gray-300" />
+                <span className="text-sm">{session.user?.name ?? 'Account'}</span>
+                <ChevronDown className="h-4 w-4" />
+              </button>
+              <button aria-label="Sign out" className="rounded-md p-2 hover:bg-gray-100" onClick={() => signOut({ callbackUrl: '/' })}>
+                <LogOut className="h-5 w-5" />
+              </button>
+            </div>
+          ) : (
+            <button className="ml-2 inline-flex items-center gap-2 rounded-md border px-2.5 py-1.5 hover:bg-gray-50" onClick={() => signIn()}>
+              <span className="text-sm">Sign in</span>
+            </button>
+          )}
         </div>
       </div>
     </header>
