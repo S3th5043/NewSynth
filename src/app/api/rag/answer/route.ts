@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { search } from '@/utils/vector-store';
 import { streamChat } from '@/utils/ai';
 import { verifyProjectApiKey } from '@/utils/auth-project';
+import { writeAuditLog } from '@/utils/audit';
 
 export const runtime = 'nodejs';
 
@@ -19,7 +20,8 @@ export async function POST(req: NextRequest) {
   try { body = BodySchema.parse(await req.json()); }
   catch { return new Response(JSON.stringify({ error: 'Invalid body' }), { status: 400, headers: { 'content-type': 'application/json' } }); }
 
-  const matches = await search(body.projectId || auth.projectId!, body.query, body.topK);
+  const projectId = body.projectId || auth.projectId!;
+  const matches = await search(projectId, body.query, body.topK);
   const context = matches.map((m, i) => `# Doc ${i+1} (score=${m.score.toFixed(3)})\n${m.text}`).join('\n\n');
 
   const messages = [
@@ -40,5 +42,7 @@ export async function POST(req: NextRequest) {
     },
   });
 
+  // fire-and-forget audit
+  writeAuditLog({ projectId, path: '/api/rag/answer', method: 'POST', status: 200 }).catch(() => {});
   return new Response(stream, { headers: { 'content-type': 'text/plain; charset=utf-8' } });
 }

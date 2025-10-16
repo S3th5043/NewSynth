@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { search } from '@/utils/vector-store';
 import { verifyProjectApiKey } from '@/utils/auth-project';
+import { writeAuditLog } from '@/utils/audit';
 
 export const runtime = 'nodejs';
 
@@ -18,6 +19,8 @@ export async function POST(req: NextRequest) {
   try { body = BodySchema.parse(await req.json()); }
   catch { return NextResponse.json({ error: 'Invalid body' }, { status: 400 }); }
 
-  const results = await search(body.projectId || auth.projectId!, body.query, body.topK);
+  const projectId = body.projectId || auth.projectId!;
+  const results = await search(projectId, body.query, body.topK);
+  await writeAuditLog({ projectId, path: '/api/rag/search', method: 'POST', status: 200 });
   return NextResponse.json({ results });
 }

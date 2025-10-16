@@ -3,6 +3,8 @@ import { z } from 'zod';
 import { addDocuments } from '@/utils/vector-store';
 import { log } from '@/utils/observability';
 import { verifyProjectApiKey } from '@/utils/auth-project';
+import { prisma } from '@/utils/db';
+import { writeAuditLog } from '@/utils/audit';
 
 export const runtime = 'nodejs';
 
@@ -18,7 +20,15 @@ export async function POST(req: NextRequest) {
   try { body = BodySchema.parse(await req.json()); }
   catch { return NextResponse.json({ error: 'Invalid body' }, { status: 400 }); }
 
-  const created = await addDocuments(body.projectId || auth.projectId!, body.docs);
+  const projectId = body.projectId || auth.projectId!;
+  const created = await addDocuments(projectId, body.docs);
+  // persist docs plain text for now
+  await prisma.$transaction(
+    body.docs.map((d) =>
+      prisma.document.create({ data: { projectId, text: d.text, metadata: d.metadata as any } })
+    )
+  );
   log('info', 'rag_ingest', { projectId: body.projectId, created });
+  await writeAuditLog({ projectId, path: '/api/rag/ingest', method: 'POST', status: 200 });
   return NextResponse.json({ ok: true, created });
 }

@@ -13,15 +13,23 @@ model Project {
   createdAt DateTime  @default(now())
   apiKeys   ApiKey[]
   documents Document[]
+  jobs      Job[]
+  auditLogs AuditLog[]
 }
 
 model ApiKey {
   id         String   @id @default(cuid())
   key        String   @unique
+  name       String?
+  role       ApiKeyRole @default(READER)
   project    Project  @relation(fields: [projectId], references: [id])
   projectId  String
   createdAt  DateTime @default(now())
   revokedAt  DateTime?
+  lastUsedAt DateTime?
+  rateLimitPerMin Int?
+  metadata   Json?
+  auditLogs  AuditLog[]
 }
 
 model Document {
@@ -30,5 +38,47 @@ model Document {
   projectId  String
   text       String
   metadata   Json?
+  embedding  Json?
+  source     String?
+  url        String?
   createdAt  DateTime @default(now())
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  project    Project  @relation(fields: [projectId], references: [id])
+  projectId  String
+  apiKey     ApiKey?  @relation(fields: [apiKeyId], references: [id])
+  apiKeyId   String?
+  path       String
+  method     String
+  status     Int
+  tokensUsed Int?
+  createdAt  DateTime @default(now())
+}
+
+model Job {
+  id         String   @id @default(cuid())
+  project    Project  @relation(fields: [projectId], references: [id])
+  projectId  String
+  type       String
+  status     JobStatus @default(QUEUED)
+  progress   Int       @default(0)
+  payload    Json
+  error      String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+}
+
+enum JobStatus {
+  QUEUED
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum ApiKeyRole {
+  ADMIN
+  WRITER
+  READER
 }
